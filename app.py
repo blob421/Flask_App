@@ -68,7 +68,7 @@ with app.app_context():
 
   if users_exist[0] == 0:  # Otherwise 1
       db.session.execute(text("""CREATE TABLE users (id INT PRIMARY KEY IDENTITY(1,1), 
-                                 email VARCHAR(50), password VARCHAR(40) )"""))
+                                 email VARCHAR(50), password VARCHAR(256) )"""))
       db.session.commit()
         
 
