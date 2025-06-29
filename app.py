@@ -133,9 +133,10 @@ def register():
        
        return jsonify({"message": "Username and password required"}), 400
     
-
+    hashed_password = generate_password_hash(password)
+    
     stmt = text("INSERT INTO users (email, password) VALUES (:email, :password)")
-    db.session.execute(stmt, {"email": username, "password": password})
+    db.session.execute(stmt, {"email": username, "password": hashed_password})
     db.session.commit()
     
     response = make_response(jsonify({'message': 'Registration complete'}))
@@ -158,13 +159,14 @@ def authenticate():
     
     smtm = text((f"SELECT id, email, password FROM users WHERE email = :username"))
     query = db.session.execute(smtm, {"username": username}).fetchone()
-
+    
     
     if not query:
        
        return jsonify({"message": "User not found"}), 404
     
-    if query.password == password:
+    hashed_password = query.password
+    if check_password_hash(hashed_password, password):
        
        id = query.id
        access_token = create_access_token(identity=username, expires_delta=exp)
