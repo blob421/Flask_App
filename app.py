@@ -75,8 +75,8 @@ class Btc(Resource):
   
   def get(self):
 
-    rows = db.session.execute(text("SELECT * FROM bitcoin_data")).all()
-    clean = [serialize_row(row) for row in rows]
+    rows = db.session.execute(text("SELECT * FROM bitcoin_data")).mappings().all()
+    clean = [dict(row) for row in rows]
     return jsonify({"content": clean})
 
 
