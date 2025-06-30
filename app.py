@@ -48,7 +48,7 @@ with app.app_context():
 
 
       db.session.execute(text("""CREATE TABLE IF NOT EXISTS 
-                              users (id INT PRIMARY KEY AUTOINCREMENT, 
+                              users (id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
                               email VARCHAR(50), password VARCHAR(256) )"""))
       db.session.commit()
         
