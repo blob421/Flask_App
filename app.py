@@ -5,10 +5,9 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_sqlalchemy import SQLAlchemy
 
 from sqlalchemy import  text
-from urllib.parse import quote_plus
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from functions import serialize_row
+
 import secrets
 import datetime
 import os
@@ -16,39 +15,23 @@ import os
 
 ## KEYS AND CONFIG
 
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv("DB_PASS")
-DB_SERVER = os.getenv('DB_SERVER')
-DB_NAME = os.getenv('DB_NAME')
-
 secure_key = secrets.token_hex(32)
 exp = datetime.timedelta(hours=1)
 
-params = {
-    "server": DB_SERVER,
-    "database": DB_NAME,
-    "user": DB_USER,
-    "password": DB_PASSWORD, 
-    "driver": "ODBC Driver 18 for SQL Server"
-}
 
-connection_string = (
-    f"DRIVER={params['driver']};"
-    f"SERVER={params['server']},1433;"
-    f"DATABASE={params['database']};"
-    f"UID={params['user']};"
-    f"PWD={params['password']};"
-    f"Encrypt=yes;"
-    f"TrustServerCertificate=no;"
-)  
+PGHOST=os.getenv("PGHOST")
+PGPORT=os.getenv("PGPORT")
+PGUSER=os.getenv("PGUSER")
+PGDATABASE=os.getenv("PGDATABASE")
+PGPASSWORD=os.getenv("PGPASSWORD") 
 
-quoted = quote_plus(connection_string)
-db_uri = f"mssql+pyodbc:///?odbc_connect={quoted}"
+
+url = f"postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}"
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+app.config['SQLALCHEMY_DATABASE_URI'] = url
 app.config["JWT_SECRET_KEY"] = f"{secure_key}"
-
 
 
 ### APP INIT
@@ -63,12 +46,10 @@ CORS(app, supports_credentials=True)
 
 with app.app_context():
 
-  users_exist = db.session.execute(text("""SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES 
-                                           WHERE TABLE_NAME = 'users'""")).first()
 
-  if users_exist[0] == 0:  # Otherwise 1
-      db.session.execute(text("""CREATE TABLE users (id INT PRIMARY KEY IDENTITY(1,1), 
-                                 email VARCHAR(50), password VARCHAR(256) )"""))
+      db.session.execute(text("""CREATE TABLE IF NOT EXISTS 
+                              users (id INT PRIMARY KEY AUTOINCREMENT, 
+                              email VARCHAR(50), password VARCHAR(256) )"""))
       db.session.commit()
         
 
@@ -94,8 +75,8 @@ class Btc(Resource):
   
   def get(self):
 
-    row = db.session.execute(text("SELECT * FROM bitcoin_data")).all()
-    clean = [serialize_row(ro) for ro in row]
+    rows = db.session.execute(text("SELECT * FROM bitcoin_data")).all()
+    clean = [serialize_row(row) for row in rows]
     return jsonify({"content": clean})
 
 
@@ -125,7 +106,6 @@ def register():
   try:
 
     data = request.get_json()
-    print(data)
     username = data['username']
     password = data['password']
 
