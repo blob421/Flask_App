@@ -85,8 +85,9 @@ class Password_change(Resource):
       user_data = db.session.execute(stmt, {'username': identity}).fetchone()
 
       if check_password_hash(user_data.password, old_password):
-         user_data.password = generate_password_hash(new_password)
-         db.session.commit()
+
+         update = text("UPDATE users SET password = :new_password WHERE username = :username")
+         db.session.execute(update, {'new_password': generate_password_hash(new_password), 'username': identity})
 
          response = make_response(jsonify({'message': 'Password updated !'}))
          return response
