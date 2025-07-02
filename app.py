@@ -88,7 +88,8 @@ class Password_change(Resource):
 
          update = text("UPDATE users SET password = :new_password WHERE username = :username")
          db.session.execute(update, {'new_password': generate_password_hash(new_password), 'username': identity})
-
+         db.session.commit()
+         
          response = make_response(jsonify({'message': 'Password updated !'}))
          return response
       
