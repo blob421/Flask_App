@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from sqlalchemy import  text
 from werkzeug.security import generate_password_hash, check_password_hash
-from functions import serialize_row
+
 
 import secrets
 import datetime
@@ -72,6 +72,29 @@ class User_data(Resource):
       else:
          return {'message': 'Error'}, 404
 
+class Password_change(Resource):
+   @jwt_required()
+   def post(self):
+      identity = get_jwt_identity()
+
+      data = request.get_json()
+      new_password = data['new_password']
+      old_password = data['old_password']
+
+      stmt = text("""SELECT username, password FROM users WHERE username = :username""")
+      user_data = db.session.execute(stmt, {'username': identity}).fetchone()
+
+      if check_password_hash(user_data.password, old_password):
+         user_data.password = generate_password_hash(new_password)
+         db.session.commit()
+
+         response = make_response(jsonify({'message': 'Password updated !'}))
+         return response
+      
+      else:
+         response = make_response(jsonify({'Error': "Your password is incorrect"})), 404
+         return response
+
 
 class Btc(Resource):
   
@@ -84,7 +107,7 @@ class Btc(Resource):
 
 api.add_resource(User_data, '/api/users/')
 api.add_resource(Btc, '/api/bitcoin')
-
+api.add_resource(Password_change, '/change/password' )
 
 
 ### ROUTES
