@@ -14,7 +14,7 @@ class QueryMeta(type):
             def get_all(self):
                 all_data = db.session.query(model).order_by(model.date.desc()).limit(3000)
 
-                return all_data[::15]
+                return all_data[::30]
                 
             dict['get_by_username'] = get_by_username
             dict['get_all'] = get_all
