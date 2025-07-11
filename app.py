@@ -82,6 +82,12 @@ api.add_resource(Btc, '/api/bitcoin')
 
 
 ### ROUTES
+@app.route('/api/check-auth', methods = ['GET'])
+@jwt_required()
+def is_auth():
+   
+   return jsonify({'authenticated': True}), 200
+
 
 @app.route('/api/sign-up', methods=['POST'])
 def register():
