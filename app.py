@@ -2,7 +2,7 @@ from flask import Flask,  jsonify, request, make_response
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-
+from flask_jwt_extended import create_refresh_token
 from werkzeug.security import generate_password_hash, check_password_hash
 import secrets
 import datetime
@@ -14,7 +14,8 @@ from models import Users, UserApi, CryptoApi, db
 ## KEYS AND CONFIG
 
 secure_key = secrets.token_hex(32)
-exp = datetime.timedelta(hours=1)
+exp = datetime.timedelta(minutes=15)
+exp_refresh = datetime.timedelta(days=30)
 
 
 PGHOST=os.getenv("PGHOST")
@@ -82,6 +83,20 @@ api.add_resource(Btc, '/api/bitcoin')
 
 
 ### ROUTES
+@app.route('/api/refresh_token', methods = ['GET'])
+@jwt_required(refresh=True)
+def issue_new_token():
+   
+   identity = get_jwt_identity()
+   if identity:
+      
+      new_token = create_access_token(identity=identity, expires_delta=exp)
+      response = jsonify({'msg': 'Issued a new access token', 'new_token': new_token})
+      
+      return response
+   else:
+      return jsonify({'error': 'user needs to be logged in'}), 401
+   
 @app.route('/api/check-auth', methods = ['GET'])
 @jwt_required()
 def is_auth():
@@ -136,10 +151,10 @@ def authenticate():
     hashed_password = user_data.password
     if check_password_hash(hashed_password, password):
        
-       
+       refresh_token = create_refresh_token(identity=identity, expires_delta=exp_refresh)
        access_token = create_access_token(identity=identity, expires_delta=exp)
      
-       message = {"message": "Login successful!", "access_token": access_token}
+       message = {"message": "Login successful!", "access_token": access_token, "refresh_token": refresh_token}
        response = make_response(jsonify(message))
        return response
         
