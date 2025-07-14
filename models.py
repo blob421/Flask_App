@@ -87,3 +87,5 @@ class UserApi(metaclass=QueryMeta):
 class CryptoApi(metaclass=QueryMeta):
     model = Bitcoin_data
 
+class CryptoApi2(metaclass=QueryMeta):
+    model = Eth_data
