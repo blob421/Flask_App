@@ -8,7 +8,7 @@ import secrets
 import datetime
 import os
 
-from models import Users, UserApi, CryptoApi, db
+from models import Users, UserApi, CryptoApi, CryptoApi2, db
 
 
 ## KEYS AND CONFIG
@@ -75,11 +75,22 @@ class Btc(Resource):
     rows = api.get_all()
     clean = [row.serialize() for row in rows]
     return jsonify({"content": clean})
+  
+
+
+class Eth(Resource):
+  
+  def get(self):
+    api = CryptoApi2()
+    rows = api.get_all()
+    clean = [row.serialize() for row in rows]
+    return jsonify({"content": clean})
+
 
 
 api.add_resource(User_data, '/api/users/')
 api.add_resource(Btc, '/api/bitcoin')
-
+api.add_resource(Eth, '/api/eth')
 
 
 ### ROUTES

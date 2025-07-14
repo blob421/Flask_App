@@ -60,6 +60,13 @@ class Eth_data(db.Model):
     pricechange1h = db.Column(db.Numeric(20,2)) 
     pricechange1d = db.Column(db.Numeric(20,2)) 
     pricechange1w = db.Column(db.Numeric(20,2))
+    def serialize(self):
+     
+     return {
+        "date": self.date.isoformat() if self.date else None,
+        "price": float(self.price) if self.price else None,
+    }
+
 
 
 class Market_data(db.Model):
